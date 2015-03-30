@@ -78,10 +78,13 @@ public class FLog {
      */
     private static String stackInfo(StackTraceElement[] traces) {
         String str = "";
+        if (traces == null) {
+            return str;
+        }
+
         if (traces.length > 1 && traces[1] != null) {
             String fileName = traces[1].getFileName();
-            int lastDotIndex = fileName.lastIndexOf(".");
-            fileName = fileName.substring(0, lastDotIndex);
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));
             str = String.format("%s.%s():%d", fileName, traces[1].getMethodName(), traces[1].getLineNumber());
         }
         return fixStringLength(str, STACK_STR_LENGTH);
