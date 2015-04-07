@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 
 /**
  * FLog
@@ -36,6 +37,20 @@ public class FLog {
         }
     }
 
+    public static void logWarn(String tag, String msg) {
+        if (isDebuggable()) {
+            Log.w(tag, String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), msg));
+        }
+    }
+
+    public static void logWarn(String tag, String fmt, Object... obj) {
+        if (isDebuggable()) {
+            Log.w(tag, String.format(
+                    String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), fmt), obj));
+        }
+    }
+
+
     public static void logInfo(String tag, String msg) {
         if (isDebuggable()) {
             Log.i(tag, String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), msg));
@@ -58,19 +73,6 @@ public class FLog {
     public static void logError(String tag, String fmt, Object... obj) {
         if (isDebuggable()) {
             Log.e(tag, String.format(
-                    String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), fmt), obj));
-        }
-    }
-
-    public static void logWarn(String tag, String msg) {
-        if (isDebuggable()) {
-            Log.w(tag, String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), msg));
-        }
-    }
-
-    public static void logWarn(String tag, String fmt, Object... obj) {
-        if (isDebuggable()) {
-            Log.w(tag, String.format(
                     String.format(LOG_FORMATTER, threadName(), stackInfo(new Throwable().getStackTrace()), fmt), obj));
         }
     }
@@ -168,18 +170,18 @@ public class FLog {
      *
      * @param v view
      */
-    public static void pvs(ViewGroup v) {
+    public static void pvs(View v) {
         pvs(v, true, false);
     }
 
     /**
      * print hierarchy structure of view
      *
-     * @param v                 view
-     * @param fromRoot          print view structure from root
-     * @param showFullClassName show full name of class
+     * @param v            view
+     * @param showRoot     print view structure from root
+     * @param showFullName show full name of class
      */
-    public static void pvs(ViewGroup v, boolean fromRoot, boolean showFullClassName) {
+    public static void pvs(View v, boolean showRoot, boolean showFullName) {
         if (!isDebuggable()) {
             return;
         }
@@ -188,54 +190,66 @@ public class FLog {
             return;
         }
 
+        ViewParent p;
+        if (!(v instanceof ViewParent)) {
+            p = v.getParent();
+        } else {
+            p = (ViewParent) v;
+        }
+
         // get root
-        if (fromRoot) {
-            while (v.getParent() != null) {
-                v = (ViewGroup) v.getParent();
+        if (showRoot) {
+            while (p.getParent() != null) {
+                // can not get child from ViewRootImpl -> break here.
+                if (p.getParent().getClass().getName().equals("android.view.ViewRootImpl")) {
+                    break;
+                }
+                p = p.getParent();
             }
         }
-        if (showFullClassName) {
-            FLog.logDebug(TAG_STRUCTURE, "%s: %s", v.getClass().getSimpleName(), v.getClass().getName());
-        } else {
-            FLog.logDebug(TAG_STRUCTURE, "%s", v.getClass().getSimpleName());
-        }
-        _pvs(v, "", showFullClassName);
+
+        FLog.logDebug(TAG_STRUCTURE, "%s", showFullName ? p.getClass().getName() : p.getClass().getSimpleName());
+
+        doPvs(p, "", showFullName, 1);
     }
 
     /**
-     * 打印视图结构
+     * print structure
      *
-     * @param g                 view
-     * @param preStr            preStr from parent
-     * @param showFullClassName show full class name
+     * @param vg           view
+     * @param pre          pre string from parent
+     * @param showFullName show full class name
+     * @param level        level of node
      */
     /* preview:
-     *             root: DecorView
-     *               ┗━━━━[0]: ActionBarOverlayLayout
-     *                     ┣━━━━[0]: FrameLayout
-     *                     ┃     ┗━━━━[0]: CanvasLayerView
-     *                     ┣━━━━[1]: ActionBarContainer
-     *                     ┃     ┣━━━━[0]: ActionBarView                 // mark1: not the last node of parent, add v-line to child's pre
-     *                     ┃     ┃     ┗━━━━[0]: LinearLayout            // mark2: the last node of parent, do not add v-line to child's pre
-     *                     ┃     ┃           ┣━━━━[0]: HomeView
-     *                     ┃     ┃           ┃     ┣━━━━[0]: ImageView
-     *                     ┃     ┃           ┃     ┗━━━━[1]: ImageView
-     *                     ┃     ┃           ┗━━━━[1]: LinearLayout
-     *                     ┃     ┃                 ┣━━━━[0]: TextView
-     *                     ┃     ┃                 ┗━━━━[1]: TextView
-     *                     ┃     ┗━━━━[1]: ActionBarContextView
-     *                     ┗━━━━[2]: ActionBarContainer
+         node: (level, index_of_child, ClassName of View)
+         DecorView
+          ┗━━━━(1, 0, ActionBarOverlayLayout)
+                ┣━━━━(2, 0, FrameLayout)
+                ┃     ┗━━━━(3, 0, CanvasLayerView)
+                ┣━━━━(2, 1, ActionBarContainer)
+                ┃     ┣━━━━(3, 0, ActionBarView)               // mark1: not the last node of parent, add v-line to child's pre
+                ┃     ┃     ┗━━━━(4, 0, LinearLayout)          // mark2: the last node of parent, do not add v-line to child's pre
+                ┃     ┃           ┣━━━━(5, 0, HomeView)
+                ┃     ┃           ┃     ┣━━━━(6, 0, ImageView)
+                ┃     ┃           ┃     ┗━━━━(6, 1, ImageView)
+                ┃     ┃           ┗━━━━(5, 1, LinearLayout)
+                ┃     ┃                 ┣━━━━(6, 0, TextView)
+                ┃     ┃                 ┗━━━━(6, 1, TextView)
+                ┃     ┗━━━━(3, 1, ActionBarContextView)
+                ┗━━━━(2, 2, ActionBarContainer)
      */
-    private static void _pvs(ViewGroup g, String preStr, boolean showFullClassName) {
-        if (!isDebuggable()) {
+    private static void doPvs(ViewParent vg, String pre, boolean showFullName, int level) {
+        if (!isDebuggable() || !(vg instanceof ViewGroup)) {
             return;
         }
 
-        int count = g.getChildCount();
+        ViewGroup group = (ViewGroup) vg;
+        int count = group.getChildCount();
         if (count > 0) {
             for (int i = 0; i < count; i++) {
-                View v = g.getChildAt(i);
-                String tmpStr = preStr;
+                View v = group.getChildAt(i);
+                String tmpStr = pre;
 
                 // special symbol for the last node
                 if (i == count - 1) {
@@ -245,13 +259,10 @@ public class FLog {
                 }
 
                 // print current node
-                if (showFullClassName) {
-                    FLog.logDebug(TAG_STRUCTURE, "%s[%d]: %s: %s", tmpStr, i, v.getClass().getSimpleName(), v.getClass().getName());
-                } else {
-                    FLog.logDebug(TAG_STRUCTURE, "%s[%d]: %s", tmpStr, i, v.getClass().getSimpleName());
-                }
+                FLog.logDebug(TAG_STRUCTURE, "%s(%d, %d, %s)", tmpStr, level, i,
+                        showFullName ? v.getClass().getName() : v.getClass().getSimpleName());
 
-                String childPre = preStr;
+                String childPre = pre;
                 // if current node is the last node, do not draw v-line
                 // see mark2
                 if (i == count - 1) {
@@ -261,7 +272,7 @@ public class FLog {
                 }
 
                 if (v instanceof ViewGroup) {
-                    _pvs((ViewGroup) v, childPre, showFullClassName);
+                    doPvs((ViewGroup) v, childPre, showFullName, level + 1);
                 }
             }
         }
