@@ -162,14 +162,14 @@ public class FLog {
     private static final String TAG_STRUCTURE = "v_structure";
 
     /**
-     * print hierarchy structure of view
+     * Print View Structure(PVS): print hierarchy structure of view
      * <p/>
      * from parent and not show class's full name
      *
      * @param v view
      */
-    public static void printViewStructure(ViewGroup v) {
-        printViewStructure(v, true, false);
+    public static void pvs(ViewGroup v) {
+        pvs(v, true, false);
     }
 
     /**
@@ -179,7 +179,7 @@ public class FLog {
      * @param fromRoot          print view structure from root
      * @param showFullClassName show full name of class
      */
-    public static void printViewStructure(ViewGroup v, boolean fromRoot, boolean showFullClassName) {
+    public static void pvs(ViewGroup v, boolean fromRoot, boolean showFullClassName) {
         if (!isDebuggable()) {
             return;
         }
@@ -199,7 +199,7 @@ public class FLog {
         } else {
             FLog.logDebug(TAG_STRUCTURE, "%s", v.getClass().getSimpleName());
         }
-        _printViewStructure(v, "", showFullClassName);
+        _pvs(v, "", showFullClassName);
     }
 
     /**
@@ -226,7 +226,7 @@ public class FLog {
      *                     ┃     ┗━━━━[1]: ActionBarContextView
      *                     ┗━━━━[2]: ActionBarContainer
      */
-    private static void _printViewStructure(ViewGroup g, String preStr, boolean showFullClassName) {
+    private static void _pvs(ViewGroup g, String preStr, boolean showFullClassName) {
         if (!isDebuggable()) {
             return;
         }
@@ -261,9 +261,10 @@ public class FLog {
                 }
 
                 if (v instanceof ViewGroup) {
-                    _printViewStructure((ViewGroup) v, childPre, showFullClassName);
+                    _pvs((ViewGroup) v, childPre, showFullClassName);
                 }
             }
         }
     }
 }
+
