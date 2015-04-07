@@ -2,6 +2,8 @@ package cn.erhu.android.flog;
 
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 
 /**
  * FLog
@@ -74,14 +76,11 @@ public class FLog {
     }
 
     /**
-     * stacktrace
+     * 调用栈信息
+     * 只打印调用log的上一个栈的信息
      */
     private static String stackInfo(StackTraceElement[] traces) {
         String str = "";
-        if (traces == null) {
-            return str;
-        }
-
         if (traces.length > 1 && traces[1] != null) {
             String fileName = traces[1].getFileName();
             fileName = fileName.substring(0, fileName.lastIndexOf("."));
@@ -90,6 +89,48 @@ public class FLog {
         return fixStringLength(str, STACK_STR_LENGTH);
     }
 
+    /**
+     * 线程信息
+     */
+    private static String threadName() {
+        return fixStringLength(Thread.currentThread().getName(), THREAD_STR_LENGTH);
+    }
+
+    /**
+     * 输出固定长度的字符串
+     * <p/>
+     * 不够被空格, 过长做trim()
+     */
+    private static String fixStringLength(String s, int targetLen) {
+        if (s != null && targetLen > 0) {
+            int len = s.length();
+            if (len > targetLen) {
+                return s.substring(0, targetLen);
+            }
+
+            StringBuilder sb = new StringBuilder(s);
+            while (len < targetLen) {
+                sb.append(" ");
+                len++;
+            }
+            return sb.toString();
+        }
+        return "";
+    }
+
+    public static void showStackTrace(String tag) {
+        if (isDebuggable()) {
+            if (!TextUtils.isEmpty(tag)) {
+                logDebug(tag, Log.getStackTraceString(new Throwable()));
+            }
+        }
+    }
+
+    /**
+     * 打印调用堆栈
+     * <p/>
+     * *
+     */
     public static void printStackTrace() {
         printStackTrace(null);
     }
@@ -118,29 +159,111 @@ public class FLog {
         }
     }
 
+    private static final String TAG_STRUCTURE = "v_structure";
+
     /**
-     * Thread Name
+     * print hierarchy structure of view
+     * <p/>
+     * from parent and not show class's full name
+     *
+     * @param v view
      */
-    private static String threadName() {
-        return fixStringLength(Thread.currentThread().getName(), THREAD_STR_LENGTH);
+    public static void printViewStructure(ViewGroup v) {
+        printViewStructure(v, true, false);
     }
 
     /**
-     * Output string with fixed length
+     * print hierarchy structure of view
+     *
+     * @param v                 view
+     * @param fromRoot          print view structure from root
+     * @param showFullClassName show full name of class
      */
-    private static String fixStringLength(String s, int len) {
-        if (s != null) {
-            int l = s.length();
-            while (l < len) {
-                s += " ";
-                l++;
-            }
+    public static void printViewStructure(ViewGroup v, boolean fromRoot, boolean showFullClassName) {
+        if (!isDebuggable()) {
+            return;
+        }
 
-            if (l > 15) {
-                s = s.substring(0, len);
+        if (v == null) {
+            return;
+        }
+
+        // get root
+        if (fromRoot) {
+            while (v.getParent() != null) {
+                v = (ViewGroup) v.getParent();
             }
         }
-        return s;
+        if (showFullClassName) {
+            FLog.logDebug(TAG_STRUCTURE, "%s: %s", v.getClass().getSimpleName(), v.getClass().getName());
+        } else {
+            FLog.logDebug(TAG_STRUCTURE, "%s", v.getClass().getSimpleName());
+        }
+        _printViewStructure(v, "", showFullClassName);
+    }
+
+    /**
+     * 打印视图结构
+     *
+     * @param g                 view
+     * @param preStr            preStr from parent
+     * @param showFullClassName show full class name
+     */
+    /* preview:
+     *             root: DecorView
+     *               ┗━━━━[0]: ActionBarOverlayLayout
+     *                     ┣━━━━[0]: FrameLayout
+     *                     ┃     ┗━━━━[0]: CanvasLayerView
+     *                     ┣━━━━[1]: ActionBarContainer
+     *                     ┃     ┣━━━━[0]: ActionBarView                 // mark1: not the last node of parent, add v-line to child's pre
+     *                     ┃     ┃     ┗━━━━[0]: LinearLayout            // mark2: the last node of parent, do not add v-line to child's pre
+     *                     ┃     ┃           ┣━━━━[0]: HomeView
+     *                     ┃     ┃           ┃     ┣━━━━[0]: ImageView
+     *                     ┃     ┃           ┃     ┗━━━━[1]: ImageView
+     *                     ┃     ┃           ┗━━━━[1]: LinearLayout
+     *                     ┃     ┃                 ┣━━━━[0]: TextView
+     *                     ┃     ┃                 ┗━━━━[1]: TextView
+     *                     ┃     ┗━━━━[1]: ActionBarContextView
+     *                     ┗━━━━[2]: ActionBarContainer
+     */
+    private static void _printViewStructure(ViewGroup g, String preStr, boolean showFullClassName) {
+        if (!isDebuggable()) {
+            return;
+        }
+
+        int count = g.getChildCount();
+        if (count > 0) {
+            for (int i = 0; i < count; i++) {
+                View v = g.getChildAt(i);
+                String tmpStr = preStr;
+
+                // special symbol for the last node
+                if (i == count - 1) {
+                    tmpStr += "┗━━━━";
+                } else {
+                    tmpStr += "┣━━━━";
+                }
+
+                // print current node
+                if (showFullClassName) {
+                    FLog.logDebug(TAG_STRUCTURE, "%s[%d]: %s: %s", tmpStr, i, v.getClass().getSimpleName(), v.getClass().getName());
+                } else {
+                    FLog.logDebug(TAG_STRUCTURE, "%s[%d]: %s", tmpStr, i, v.getClass().getSimpleName());
+                }
+
+                String childPre = preStr;
+                // if current node is the last node, do not draw v-line
+                // see mark2
+                if (i == count - 1) {
+                    childPre += "      ";
+                } else {
+                    childPre += "┃     "; // see mark1
+                }
+
+                if (v instanceof ViewGroup) {
+                    _printViewStructure((ViewGroup) v, childPre, showFullClassName);
+                }
+            }
+        }
     }
 }
-
