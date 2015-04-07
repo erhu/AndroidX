@@ -25,31 +25,27 @@ D/Main(3202): ❖❖❖  main     MainActivity.onCreate():14  ❖❖❖  onCreat
         v.setLayoutParams(p);
         setContentView(v);
 
-        FLog.printViewStructure((ViewGroup) v.getParent());
-/*      
-        // print structure from root and show fullName of class
-        FLog.printViewStructure((ViewGroup) v.getParent(), true, true);
-
-        // do not print structure from root and do not show fullName of class
-        FLog.printViewStructure((ViewGroup) v.getParent(), false, false);
+        FLog.pvs(v);
+/*      FLog.pvs(v, true, true);
+        FLog.pvs(v, false, true);
+        FLog.pvs(v, false, false);
 */
 
 // output --------------------------------------------------------------------------
-D/v_structure(15234): ❖❖❖ main FLog.pvs():207   ❖❖❖ DecorView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖ ┗━━━━[0]: ActionBarOverlayLayout
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┣━━━━[0]: FrameLayout
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┗━━━━[0]: CanvasLayerView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┣━━━━[1]: ActionBarContainer
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┣━━━━[0]: ActionBarView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃        ┗━━━━[0]: LinearLayout
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                 ┣━━━━[0]: HomeView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                 ┃        ┣━━━━[0]: ImageView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                 ┃        ┗━━━━[1]: ImageView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                 ┗━━━━[1]: LinearLayout
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                          ┣━━━━[0]: TextView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┃                          ┗━━━━[1]: TextView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┃        ┗━━━━[1]: ActionBarContextView
-D/v_structure(15234): ❖❖❖ main FLog._pvs():258  ❖❖❖          ┗━━━━[2]: ActionBarContainer
+D/v_structure( 7068): ❖❖❖ main FLog.pvs():211   ❖❖❖  DecorView
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖  ┗━━━━(1, 0, ActionBarOverlayLayout)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┣━━━━(2, 0, FrameLayout)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┗━━━━(3, 0, CanvasLayerView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┣━━━━(2, 1, ActionBarContainer)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┣━━━━(3, 0, ActionBarView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃       ┗━━━━(4, 0, LinearLayout)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                ┣━━━━(5, 0, HomeView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                ┃       ┣━━━━(6, 0, ImageView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                ┃       ┗━━━━(6, 1, ImageView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                ┗━━━━(5, 1, LinearLayout)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                         ┣━━━━(6, 0, TextView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┃                         ┗━━━━(6, 1, TextView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┃       ┗━━━━(3, 1, ActionBarContextView)
+D/v_structure( 7068): ❖❖❖ main FLog.doPvs():262 ❖❖❖           ┗━━━━(2, 2, ActionBarContainer)
 
-    }
 ```
