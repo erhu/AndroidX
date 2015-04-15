@@ -216,28 +216,28 @@ public class FLog {
     /**
      * print structure
      *
-     * @param vg           view
-     * @param pre          pre string from parent
+     * @param vg                view
+     * @param pre               pre string from parent
      * @param showFullName show full class name
-     * @param level        level of node
+     * @param level             level of node
      */
     /* preview:
          node: (level, index_of_child, ClassName of View)
          DecorView
-          ┗━━━━(1, 0, ActionBarOverlayLayout)
-                ┣━━━━(2, 0, FrameLayout)
-                ┃     ┗━━━━(3, 0, CanvasLayerView)
-                ┣━━━━(2, 1, ActionBarContainer)
-                ┃     ┣━━━━(3, 0, ActionBarView)               // mark1: not the last node of parent, add v-line to child's pre
-                ┃     ┃     ┗━━━━(4, 0, LinearLayout)          // mark2: the last node of parent, do not add v-line to child's pre
-                ┃     ┃           ┣━━━━(5, 0, HomeView)
-                ┃     ┃           ┃     ┣━━━━(6, 0, ImageView)
-                ┃     ┃           ┃     ┗━━━━(6, 1, ImageView)
-                ┃     ┃           ┗━━━━(5, 1, LinearLayout)
-                ┃     ┃                 ┣━━━━(6, 0, TextView)
-                ┃     ┃                 ┗━━━━(6, 1, TextView)
-                ┃     ┗━━━━(3, 1, ActionBarContextView)
-                ┗━━━━(2, 2, ActionBarContainer)
+          └────(1, 0, ActionBarOverlayLayout)
+                ├────(2, 0, FrameLayout)
+                │     └────(3, 0, CanvasLayerView)
+                ├────(2, 1, ActionBarContainer)
+                │     ├────(3, 0, ActionBarView)               // mark1: not the last node of parent, add v-line to child's pre
+                │     │     └────(4, 0, LinearLayout)          // mark2: the last node of parent, do not add v-line to child's pre
+                │     │           ├────(5, 0, HomeView)
+                │     │           │     ├────(6, 0, ImageView)
+                │     │           │     └────(6, 1, ImageView)
+                │     │           └────(5, 1, LinearLayout)
+                │     │                 ├────(6, 0, TextView)
+                │     │                 └────(6, 1, TextView)
+                │     └────(3, 1, ActionBarContextView)
+                └────(2, 2, ActionBarContainer)
      */
     private static void doPvs(ViewParent vg, String pre, boolean showFullName, int level) {
         if (!isDebuggable() || !(vg instanceof ViewGroup)) {
@@ -253,9 +253,9 @@ public class FLog {
 
                 // special symbol for the last node
                 if (i == count - 1) {
-                    tmpStr += "┗━━━━";
+                    tmpStr += "└────";
                 } else {
-                    tmpStr += "┣━━━━";
+                    tmpStr += "├────";
                 }
 
                 // print current node
@@ -268,7 +268,7 @@ public class FLog {
                 if (i == count - 1) {
                     childPre += "      ";
                 } else {
-                    childPre += "┃     "; // see mark1
+                    childPre += "│     "; // see mark1
                 }
 
                 if (v instanceof ViewGroup) {
